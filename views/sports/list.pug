@@ -1,0 +1,8 @@
+extends ../layout
+
+block content
+    ul
+        each sport_list in sports_list
+            li= sport_list
+        else
+            li There are no Sport
