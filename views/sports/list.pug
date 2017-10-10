@@ -1,8 +1,11 @@
 extends ../layout
 
 block content
+    .page-header
+        h3 List of Games
     ul
         each sport_list in sports_list
-            li= sport_list
+            li:  a(href='/sport/'+sport_list.name) #{sport_list.name}
+
         else
             li There are no Sport

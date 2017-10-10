@@ -34,7 +34,7 @@ exports.createSport = (req, res, next) => {
         sport.save((err) => {
         if (err) { req.flash('errors', { msg: 'can not save' }); }
 
-        res.redirect('/createSportForm');
+        res.redirect('/sport/'+ sport.name);
 });
 });
 
@@ -55,14 +55,35 @@ exports.listSports = (req, res) => {
     })
 };
 
-/**
- * GET /account
- * Profile page.
- */
-// exports.getAccount = (req, res) => {
-//     res.render('account/profile', {
-//         title: 'Account Management'
-//     });
-// };
+exports.getsport = (req, res) => {
+
+    Sport.findOne({name: req.params.name}, function(err, sport) {
+
+        console.log(err,sport)
+        if (err) {
+            req.flash('errors', {msg: 'Something wrong'})
+        }
+
+
+        res.render('sports/sport', {
+            title: ' Sport',
+            sport: sport
+        });
+    })
+};
+
+exports.deleteSport = (req, res) => {
+
+    Sport.remove({name: req.body.name}, function(err, sport) {
+
+        console.log(err,sport)
+        if (err) {
+            req.flash('errors', {msg: 'Something wrong'})
+        }
+
+
+        res.redirect('/listsports');
+    })
+};
 
 
