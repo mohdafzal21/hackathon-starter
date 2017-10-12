@@ -74,7 +74,7 @@ exports.getsport = (req, res) => {
 
 exports.deleteSport = (req, res) => {
 
-    Sport.remove({name: req.body.name}, function(err, sport) {
+    Sport.findOneAndRemove({_id: req.params.id}, function(err, sport) {
 
         console.log(err,sport)
         if (err) {
@@ -82,8 +82,51 @@ exports.deleteSport = (req, res) => {
         }
 
 
-        res.redirect('/listsports');
+        //res.redirect('/listsports');
+        res.json({error:err,sport:sport});
     })
 };
 
+exports.editSport = (req, res, next) => {
+
+    // const sport = new Sport({
+    //     name: req.body.name,
+    //     type: req.body.type
+    // });
+
+    Sport.findOne({name: req.params.name},function(err, sport) {
+
+        console.log(err,sport)
+        if (err) {
+            req.flash('errors', {msg: 'Something wrong'})
+        }
+
+
+
+        res.render('sports/edit', {
+            title: ' Sport',
+            sport: sport
+        });
+    })
+
+};
+exports.updateSport = (req, res, next) => {
+
+
+
+    console.log(req.body)
+
+    Sport.findOneAndUpdate({_id: req.body.id}, req.body, { new: true }, function(err, sport) {
+
+        console.log(err,sport)
+        if (err) {
+            req.flash('errors', {msg: 'Something wrong'})
+        }
+
+        res.json({error:err,sport:sport});
+
+        // res.redirect('/listsports');
+    })
+
+};
 

@@ -3,9 +3,22 @@ extends ../layout
 block content
     .page-header
         h3 List of Games
-    ul
+    ul(class='listItem')
         each sport_list in sports_list
-            li:  a(href='/sport/'+sport_list.name) #{sport_list.name}
+            li
+                a(href='/sport/'+sport_list.name) #{sport_list.name}
+
+                form.form-horizontal(class='delete')
+                    input(type='hidden', name='_csrf', value=_csrf id='_csrf')
+                    input(type='hidden', name='id', class="id" value=sport_list.id id=sport_list.id)
+                    .form-group
+                        .col-sm-offset-3.col-sm-7
+                            button.btn.btn-success(type='submit' class='deletebutton')
+                                i.fa.fa-trash-o
+                                | Delete
 
         else
             li There are no Sport
+
+
+    a(href='/createSportForm') Create Sport

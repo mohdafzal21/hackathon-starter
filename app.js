@@ -141,8 +141,9 @@ app.get('/createSportForm',sportController.createSportForm);
 app.post('/createSport', sportController.createSport);
 app.get('/listsports',sportController.listSports);
 app.get('/sport/:name', sportController.getsport);
-app.post('/deleteSport', sportController.deleteSport);
-
+app.post('/deleteSport/:id', sportController.deleteSport);
+app.get('/editSport/:name', sportController.editSport);
+app.post('/updateSport', sportController.updateSport);
 /**
  * API examples routes.
  */
