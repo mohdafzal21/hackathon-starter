@@ -19,8 +19,26 @@ const expressValidator = require('express-validator');
 const expressStatusMonitor = require('express-status-monitor');
 const sass = require('node-sass-middleware');
 const multer = require('multer');
+const readChunk = require('read-chunk');
+const fileType = require('file-type');
+// const fs = require('fs');
+// var upload = multer().single('avatar')
 
-const upload = multer({ dest: path.join(__dirname, 'uploads') });
+var storage = multer.diskStorage({
+
+    destination: function (req, file, cb) {
+        cb(null, './uploads');
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now()+".exe");
+
+
+    }
+});
+
+var upload = multer({ storage: storage }).any();
+
+//const upload = multer({ dest: path.join(__dirname, 'uploads') });
 
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
@@ -35,6 +53,7 @@ const userController = require('./controllers/user');
 const apiController = require('./controllers/api');
 const contactController = require('./controllers/contact');
 const sportController = require('./controllers/sport');
+const venueController = require('./controllers/venue');
 
 /**
  * API keys and Passport configuration.
@@ -87,15 +106,15 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
-app.use((req, res, next) => {
-  if (req.path === '/api/upload') {
-    next();
-  } else {
-    lusca.csrf()(req, res, next);
-  }
-});
-app.use(lusca.xframe('SAMEORIGIN'));
-app.use(lusca.xssProtection(true));
+// app.use((req, res, next) => {
+//   if (req.path === '/api/upload') {
+//     next();
+//   } else {
+//     lusca.csrf()(req, res, next);
+//   }
+// });
+// app.use(lusca.xframe('SAMEORIGIN'));
+// app.use(lusca.xssProtection(true));
 app.use((req, res, next) => {
   res.locals.user = req.user;
   next();
@@ -144,6 +163,39 @@ app.get('/sport/:name', sportController.getsport);
 app.post('/deleteSport/:id', sportController.deleteSport);
 app.get('/editSport/:name', sportController.editSport);
 app.post('/updateSport', sportController.updateSport);
+
+app.post('/createVenue',venueController.createVenue);
+app.get('/venueList',venueController.venueList);
+app.post('/venueEdit/:id',venueController.venueEdit);
+app.post('/venueDelete/:id',venueController.venueDelete);
+app.post('/venueSportEdit/:id',venueController.venueSportEdit);
+// app.post('/venueSportUpdate/:id',venueController.venueSportUpdate);
+app.post('/profile', function (req, res) {
+    upload(req, res, function (err) {
+
+        // console.log(req.files[0].filename);
+        const buffer = readChunk.sync("./uploads/"+req.files[0].filename, 0, 4100);
+         fileType(buffer);
+         console.log(fileType(buffer));
+        // if (fileType(buffer) === "exe"){
+        //     fs.unlink("./uploads/"+req.files[0].filename, (err) => {
+        //         if (err) throw err;
+        //         console.log('successfully deleted /tmp/hello');
+        //     });
+        // }
+
+
+
+        if (err) {
+            // An error occurred when uploading
+            //console.log('Limit file size: '+limit);
+            res.json({result:"this is error man!!!!!!"})
+        }
+        res.json({result:"narendra, we done!!"})
+
+        // Everything went fine
+    })
+})
 /**
  * API examples routes.
  */
@@ -171,8 +223,8 @@ app.get('/api/paypal', apiController.getPayPal);
 app.get('/api/paypal/success', apiController.getPayPalSuccess);
 app.get('/api/paypal/cancel', apiController.getPayPalCancel);
 app.get('/api/lob', apiController.getLob);
-app.get('/api/upload', apiController.getFileUpload);
-app.post('/api/upload', upload.single('myFile'), apiController.postFileUpload);
+// app.get('/api/upload', apiController.getFileUpload);
+// app.post('/api/upload', upload.single('myFile'), apiController.postFileUpload);
 app.get('/api/pinterest', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getPinterest);
 app.post('/api/pinterest', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.postPinterest);
 app.get('/api/google-maps', apiController.getGoogleMaps);
