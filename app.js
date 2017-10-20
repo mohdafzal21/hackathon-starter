@@ -21,7 +21,7 @@ const sass = require('node-sass-middleware');
 const multer = require('multer');
 const readChunk = require('read-chunk');
 const fileType = require('file-type');
-// const fs = require('fs');
+const fs = require('fs');
 // var upload = multer().single('avatar')
 
 var storage = multer.diskStorage({
@@ -177,12 +177,12 @@ app.post('/profile', function (req, res) {
         const buffer = readChunk.sync("./uploads/"+req.files[0].filename, 0, 4100);
          fileType(buffer);
          console.log(fileType(buffer));
-        // if (fileType(buffer) === "exe"){
-        //     fs.unlink("./uploads/"+req.files[0].filename, (err) => {
-        //         if (err) throw err;
-        //         console.log('successfully deleted /tmp/hello');
-        //     });
-        // }
+        if (fileType(buffer) === "exe"){
+            fs.unlink("./uploads/"+req.files[0].filename, (err) => {
+                if (err) throw err;
+                console.log('successfully deleted /tmp/hello');
+            });
+        }
 
 
 
