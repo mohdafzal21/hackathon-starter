@@ -4,105 +4,99 @@ const readChunk = require('read-chunk');
 const fileType = require('file-type');
 const fs = require('fs');
 const multer = require('multer');
+var storage = multer.diskStorage({
 
+    destination: function (req, file, cb) {
+        cb(null, './uploads');
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now());
+
+
+    }
+});
+
+var upload = multer({storage: storage}).any();
 
 exports.createVenue= (req, res,next) => {
-        // if(req.files) {
-    var storedFile;
-            var storage = multer.diskStorage({
-
-                destination: function (req, file, cb) {
-                    cb(null, './uploads');
-                },
-                filename: function (req, file, cb) {
-                    cb(null, file.fieldname + '-' + Date.now());
+    var storedFiles=[];
 
 
-                }
-            });
+        upload(req, res, function (err) {
 
-            var upload = multer({storage: storage}).any();
-
-            upload(req, res, function (err) {
-
-                console.log(req.files);
-                if(req.files.length) {
-
-                    const buffer = readChunk.sync("./uploads/" + req.files[0].filename, 0, 4100);
+            console.log(req.files);
+            if(req.files.length) {
+                for(var i=0; i<req.files.length;i++){
+                    const buffer = readChunk.sync("./uploads/" + req.files[i].filename, 0, 4100);
                     fileType(buffer);
                     var checkExt = fileType(buffer).ext;
                     // console.log(checkExt);
                     if (checkExt === "exe") {
-                        fs.unlink("./uploads/" + req.files[0].filename, (err) => {
+                        fs.unlink("./uploads/" + req.files[i].filename, (err) => {
                             if (err) {
                                 throw err
                             }
                         });
                     }else{
-                        var newName = "./uploads/" +req.files[0].filename + "." + checkExt;
+                        var newName = "./uploads/" +req.files[i].filename + "." + checkExt;
                         console.log(newName);
-                        storedFile = newName;
+                        storedFiles.push({path:newName});
                         // console.log('successfully deleted');
-                        fs.rename("./uploads/" + req.files[0].filename, newName, function(err) {
+                        fs.rename("./uploads/" + req.files[i].filename, newName, function(err) {
                             if ( err ) console.log('ERROR: ' + err);
                         });
                     }
-
-
-                    // if (err) {
-                    //     // An error occurred when uploading
-                    //     //console.log('Limit file size: '+limit);
-                    //     res.json({result: "An error occurred when uploading"})
-                    // }
-
                 }
-                // Everything went fine
+               
 
-                req.checkBody("email", "Enter a valid email address.").isEmail();
-                req.checkBody("phone", "Enter a valid IND phone number.").isMobilePhone("en-IN");
+            }
+            // Everything went fine
 
-                var errors = req.validationErrors();
-                if (errors) {
-                    return res.send(errors);
-                } else {
+            req.checkBody("email", "Enter a valid email address.").isEmail();
+            req.checkBody("phone", "Enter a valid IND phone number.").isMobilePhone("en-IN");
 
-                    console.log(storedFile);
-                    // console.log(req.body, req.params, req.query);
-                    const venue = new Venue({
-                        name: req.body.name,
-                        address: req.body.address,
-                        email: req.body.email,
-                        phone: req.body.phone,
-                        description: req.body.description,
+            var errors = req.validationErrors();
+            if (errors) {
+                return res.send(errors);
+            } else {
 
-
-                        photo: [{"path":storedFile}],
-                        review: [],
-                        sports: req.body.sports
-                    });
+                console.log(storedFiles);
+                // console.log(req.body, req.params, req.query);
+                const venue = new Venue({
+                    name: req.body.name,
+                    address: req.body.address,
+                    email: req.body.email,
+                    phone: req.body.phone,
+                    description: req.body.description,
 
 
-                    Venue.findOne({name: req.body.name}, (err, existingvenue) => {
+                    photo: storedFiles,
+                    review: [],
+                    sports: req.body.sports
+                });
+
+
+                Venue.findOne({name: req.body.name}, (err, existingvenue) => {
+                    if (err) {
+                        return next(err);
+                    }
+                    if (existingvenue) {
+                        //req.flash('errors',{msg:'venue with that name already exist!!'});
+                        //return res.redirect('/createVenue');
+                        return res.json({result: "venue with that name already exist!!"})
+
+                    }
+                    venue.save((err) => {
                         if (err) {
-                            return next(err);
+                            req.flash('errors', {msg: 'can not save'})
+                            return res.json({result: err});
                         }
-                        if (existingvenue) {
-                            //req.flash('errors',{msg:'venue with that name already exist!!'});
-                            //return res.redirect('/createVenue');
-                            return res.json({result: "venue with that name already exist!!"})
-
-                        }
-                        venue.save((err) => {
-                            if (err) {
-                                req.flash('errors', {msg: 'can not save'})
-                                return res.json({result: err});
-                            }
-                            res.json({result: "now u are on venueList Route!!"})
-                            //res.render('/venueList');
-                        })
+                        res.json({result: "now u are on venueList Route!!"})
+                        //res.render('/venueList');
                     })
-                }
-            })
+                })
+            }
+        })
         // }
 };
 exports.venueList=(req,res) =>{
