@@ -1,48 +1,109 @@
 const passport = require('passport');
 const Venue = require('../models/Venue');
+const readChunk = require('read-chunk');
+const fileType = require('file-type');
+const fs = require('fs');
+const multer = require('multer');
+
 
 exports.createVenue= (req, res,next) => {
-    req.checkBody("email", "Enter a valid email address.").isEmail();
-    req.checkBody("phone", "Enter a valid IND phone number.").isMobilePhone("en-IN");
+        // if(req.files) {
+    var storedFile;
+            var storage = multer.diskStorage({
 
-    var errors = req.validationErrors();
-    if(errors){
-        return res.send(errors);
-    }
-
-
-    // console.log(req.body, req.params, req.query);
-  const venue = new Venue({
-        name: req.body.name,
-        address: req.body.address,
-        email: req.body.email,
-        phone: req.body.phone,
-        description: req.body.description,
+                destination: function (req, file, cb) {
+                    cb(null, './uploads');
+                },
+                filename: function (req, file, cb) {
+                    cb(null, file.fieldname + '-' + Date.now());
 
 
-        photo:[],
-        review:[],
-        sports:req.body.sports
-    });
+                }
+            });
+
+            var upload = multer({storage: storage}).any();
+
+            upload(req, res, function (err) {
+
+                console.log(req.files);
+                if(req.files.length) {
+
+                    const buffer = readChunk.sync("./uploads/" + req.files[0].filename, 0, 4100);
+                    fileType(buffer);
+                    var checkExt = fileType(buffer).ext;
+                    // console.log(checkExt);
+                    if (checkExt === "exe") {
+                        fs.unlink("./uploads/" + req.files[0].filename, (err) => {
+                            if (err) {
+                                throw err
+                            }
+                        });
+                    }else{
+                        var newName = "./uploads/" +req.files[0].filename + "." + checkExt;
+                        console.log(newName);
+                        storedFile = newName;
+                        // console.log('successfully deleted');
+                        fs.rename("./uploads/" + req.files[0].filename, newName, function(err) {
+                            if ( err ) console.log('ERROR: ' + err);
+                        });
+                    }
 
 
-    Venue.findOne({name:req.body.name},(err,existingvenue)=>{
-        if (err) {return next(err);}
-        if (existingvenue){
-            //req.flash('errors',{msg:'venue with that name already exist!!'});
-            //return res.redirect('/createVenue');
-             return res.json({result:"venue with that name already exist!!"})
+                    // if (err) {
+                    //     // An error occurred when uploading
+                    //     //console.log('Limit file size: '+limit);
+                    //     res.json({result: "An error occurred when uploading"})
+                    // }
 
-        }
-        venue.save((err)=> {
-            if(err) {req.flash('errors',{msg:'can not save'})
-                return res.json({result: err});
-            }
-            res.json({result:"now u are on venueList Route!!"})
-            //res.render('/venueList');
-        })
-    })
+                }
+                // Everything went fine
 
+                req.checkBody("email", "Enter a valid email address.").isEmail();
+                req.checkBody("phone", "Enter a valid IND phone number.").isMobilePhone("en-IN");
+
+                var errors = req.validationErrors();
+                if (errors) {
+                    return res.send(errors);
+                } else {
+
+                    console.log(storedFile);
+                    // console.log(req.body, req.params, req.query);
+                    const venue = new Venue({
+                        name: req.body.name,
+                        address: req.body.address,
+                        email: req.body.email,
+                        phone: req.body.phone,
+                        description: req.body.description,
+
+
+                        photo: [{"path":storedFile}],
+                        review: [],
+                        sports: req.body.sports
+                    });
+
+
+                    Venue.findOne({name: req.body.name}, (err, existingvenue) => {
+                        if (err) {
+                            return next(err);
+                        }
+                        if (existingvenue) {
+                            //req.flash('errors',{msg:'venue with that name already exist!!'});
+                            //return res.redirect('/createVenue');
+                            return res.json({result: "venue with that name already exist!!"})
+
+                        }
+                        venue.save((err) => {
+                            if (err) {
+                                req.flash('errors', {msg: 'can not save'})
+                                return res.json({result: err});
+                            }
+                            res.json({result: "now u are on venueList Route!!"})
+                            //res.render('/venueList');
+                        })
+                    })
+                }
+            })
+        // }
 };
 exports.venueList=(req,res) =>{
     Venue.find({}, function(err, venueList) {
