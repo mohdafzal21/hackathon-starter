@@ -30,7 +30,7 @@ var storage = multer.diskStorage({
         cb(null, './uploads');
     },
     filename: function (req, file, cb) {
-        cb(null, file.fieldname + '-' + Date.now()+".exe");
+        cb(null, file.fieldname + '-' + Date.now());
 
 
     }
@@ -168,6 +168,7 @@ app.post('/createVenue',venueController.createVenue);
 app.get('/venueList',venueController.venueList);
 app.post('/venueEdit/:id',venueController.venueEdit);
 app.post('/venueDelete/:id',venueController.venueDelete);
+app.post('/venueAddSport/:id',venueController.venueAddSport);
 app.post('/venueSportEdit/:id',venueController.venueSportEdit);
 // app.post('/venueSportUpdate/:id',venueController.venueSportUpdate);
 app.post('/profile', function (req, res) {
@@ -176,11 +177,11 @@ app.post('/profile', function (req, res) {
         // console.log(req.files[0].filename);
         const buffer = readChunk.sync("./uploads/"+req.files[0].filename, 0, 4100);
          fileType(buffer);
-         console.log(fileType(buffer));
-        if (fileType(buffer) === "exe"){
+         console.log(fileType(buffer).ext);
+        if (fileType(buffer).ext === "exe"){
             fs.unlink("./uploads/"+req.files[0].filename, (err) => {
                 if (err) throw err;
-                console.log('successfully deleted /tmp/hello');
+                console.log('successfully deleted');
             });
         }
 
@@ -195,7 +196,10 @@ app.post('/profile', function (req, res) {
 
         // Everything went fine
     })
-})
+});
+app.post('/venueSportUpdate/:id/:ids',venueController.venueSportUpdate);
+app.post('/venueSportDelete/:id/:ids',venueController.venueSportDelete);
+app.post('/makeReview/:id',venueController.makeReview);
 /**
  * API examples routes.
  */

@@ -135,6 +135,34 @@ exports.venuePhoto = function (req, res) {
 
 };
 
+exports.venueAddSport = function (req, res) {
+
+    Venue.findOne({_id:req.params.id},function (err,venue) {
+        if(err){
+            req.flash("error",{msg:'something wrong with sport add Routing'})
+        }
+
+        if(venue.sports.length){
+            for (var i=0; i<venue.sports.length;i++) {
+                if (venue.sports[i].name === req.body.name) {
+                    return res.json({result: "sport name with that name already exist!!"})
+                }
+            }
+        }
+
+        venue.sports.push({name: req.body.name});
+        // console.log(venue.sports);
+        venue.save((err) => {
+            if (err) {
+                req.flash('errors', {msg: 'can not save'});
+                return res.json({result: err});
+            }
+            res.json({result: "now u saved the sport name!!"})
+            //res.render('/venueList');
+        })
+    })
+};
+
 exports.venueSportEdit = function (req, res) {
     Venue.findOne({_id: req.params.id},req.body,{new: true}, function(err,venue){
         console.log(venue.sports);
@@ -150,13 +178,65 @@ exports.venueSportEdit = function (req, res) {
     })
 };
 
-// exports.venueSportUpdate= function (req, res) {
-//
-//     Venue.findOneAndUpdate({_id: req.params.id}, req.body,{ new: true }, function (err,venueEdit) {
-//         res.json({venueEdit:venueEdit,result:"ur done!!"});
-//     })
-// };
+exports.venueSportUpdate= function (req, res) {
+
+    Venue.findOneAndUpdate(     {
+            _id: req.params.id,
+            "sports._id":req.params.ids,
+        },
+        {
+            "$set": {
+                "sports.$.name":req.body.sports[0].name,
+            }
+        },{ new: true }, function (err,venueEdit) {
+
+        res.json({venueEdit:venueEdit,result:"ur done!!"});
+    })
+};
+
+exports.venueSportDelete = function (req, res) {
+    Venue.findOne({_id:req.params.id},function (err,venue) {
+        if (err) {
+            req.flash('errors', {msg: 'Something wrong with deleting sport name'})
+        }
+
+        console.log(venue);
+        venue.sports.id(req.params.ids).remove();
+
+        // venue.findOneAndRemove({"sports._id":req.params.ids},function (err, sportNameDelete) {
+        //     if (err) {
+        //         req.flash('errors', {msg: 'Something wrong with deleting sport name'})
+        //     }
+
+        venue.save();
+
+        console.log(venue)
+            res.json({venue:venue, result:"now u delete the sport name"});
+        // })
+    })
+
+};
 
 // exports.venuePhoto = function (req, res) {
 //
 // };
+
+exports.makeReview = function(req,res){
+  // const input = new Venue({
+  //
+  //     rating: req.body.rating,
+  //     description:req.body.description
+  // });
+    Venue.findOne({_id:req.params.id},function (err, venue) {
+        if (err) {
+            req.flash('errors', {msg: 'Something wrong Rating'})
+        }
+        console.log(req.body);
+        venue.review.push({rating:req.body.rating,description:req.body.description});
+        venue.save( function (err) {
+            if (err) { req.flash('errors', { msg: 'can not save' }); }
+
+            res.json({"result":"this is result after savnig the data!!"})
+        });
+    })
+};
