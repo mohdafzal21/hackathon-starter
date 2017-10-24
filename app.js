@@ -169,6 +169,7 @@ app.get('/venueList',venueController.venueList);
 app.post('/venueEdit/:id',venueController.venueEdit);
 app.post('/venueDelete/:id',venueController.venueDelete);
 app.post('/venueAddSport/:id',venueController.venueAddSport);
+app.post('/venueSportList/:id',venueController.venueSportList);
 app.post('/venueSportEdit/:id',venueController.venueSportEdit);
 // app.post('/venueSportUpdate/:id',venueController.venueSportUpdate);
 app.post('/profile', function (req, res) {
@@ -199,7 +200,9 @@ app.post('/profile', function (req, res) {
 });
 app.post('/venueSportUpdate/:id/:ids',venueController.venueSportUpdate);
 app.post('/venueSportDelete/:id/:ids',venueController.venueSportDelete);
+
 app.post('/makeReview/:id',venueController.makeReview);
+app.post('/reviewList/:id',venueController.reviewList);
 /**
  * API examples routes.
  */

@@ -162,7 +162,18 @@ exports.venueAddSport = function (req, res) {
         })
     })
 };
+exports.venueSportList= function (req, res) {
+    Venue.findOne({
+        _id: req.params.id
+    })
+        .populate('sports', ' name')
+        .exec(
+            function(err, venue) {
+                if (err) res.status(500).send(err);
 
+                res.json(venue.sports);
+            });
+};
 exports.venueSportEdit = function (req, res) {
     Venue.findOne({_id: req.params.id},req.body,{new: true}, function(err,venue){
         console.log(venue.sports);
@@ -239,4 +250,16 @@ exports.makeReview = function(req,res){
             res.json({"result":"this is result after savnig the data!!"})
         });
     })
+};
+exports.reviewList = function(req,res){
+    Venue.findOne({
+        _id: req.params.id
+    })
+        .populate('sports', ' name')
+        .exec(
+            function(err, venue) {
+                if (err) res.status(500).send(err);
+
+                res.json(venue.sports);
+            });
 };
