@@ -210,22 +210,14 @@ exports.venueSportDelete = function (req, res) {
         if (err) {
             req.flash('errors', {msg: 'Something wrong with deleting sport name'})
         }
-
         console.log(venue);
         venue.sports.id(req.params.ids).remove();
-
-        // venue.findOneAndRemove({"sports._id":req.params.ids},function (err, sportNameDelete) {
-        //     if (err) {
-        //         req.flash('errors', {msg: 'Something wrong with deleting sport name'})
-        //     }
-
         venue.save();
 
         console.log(venue)
             res.json({venue:venue, result:"now u delete the sport name"});
         // })
     })
-
 };
 
 // exports.venuePhoto = function (req, res) {
@@ -233,17 +225,12 @@ exports.venueSportDelete = function (req, res) {
 // };
 
 exports.makeReview = function(req,res){
-  // const input = new Venue({
-  //
-  //     rating: req.body.rating,
-  //     description:req.body.description
-  // });
     Venue.findOne({_id:req.params.id},function (err, venue) {
         if (err) {
             req.flash('errors', {msg: 'Something wrong Rating'})
         }
         console.log(req.body);
-        venue.review.push({rating:req.body.rating,description:req.body.description});
+        venue.review.push({rating:req.body.rating,description:req.body.description,postedBy:req.params.idUser});
         venue.save( function (err) {
             if (err) { req.flash('errors', { msg: 'can not save' }); }
 
@@ -255,11 +242,38 @@ exports.reviewList = function(req,res){
     Venue.findOne({
         _id: req.params.id
     })
-        .populate('sports', ' name')
+        .populate('review', ' rating description')
         .exec(
             function(err, venue) {
                 if (err) res.status(500).send(err);
 
-                res.json(venue.sports);
+                res.json(venue.review);
             });
+};
+exports.reviewEdit = function (req, res) {
+    Venue.findOneAndUpdate(     {
+            _id: req.params.id,
+            "review.postedBy":req.params.idUser
+        },
+        {
+            "$set": {
+                "review.$.rating":req.body.rating,
+                "review.$.description":req.body.description,
+            }
+        },{ new: true }, function (err,venueEdit) {
+
+            res.json({venueEdit:venueEdit,result:"ur done for editing!!"});
+        })
+};
+exports.reviewDelete = function (req, res) {
+    var postedBy = req.params.idUser;
+    Venue.findOne({_id:req.params.id},function (err,venue) {
+        if(err){
+            req.flash('errors',{msg:"something went wrong with review Delelte"});
+        }
+        //console.log(venue.review);
+        venue.review.ObjectId(req.params.idUser).remove();
+        venue.save();
+        res.json({venue:venue, result:"now u delete the review"});
+    })
 };

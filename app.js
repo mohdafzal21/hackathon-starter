@@ -201,8 +201,10 @@ app.post('/profile', function (req, res) {
 app.post('/venueSportUpdate/:id/:ids',venueController.venueSportUpdate);
 app.post('/venueSportDelete/:id/:ids',venueController.venueSportDelete);
 
-app.post('/makeReview/:id',venueController.makeReview);
+app.post('/makeReview/:id/:idUser',venueController.makeReview);
 app.post('/reviewList/:id',venueController.reviewList);
+app.post('/reviewEdit/:id/:idUser',venueController.reviewEdit);
+app.post('/reviewDelete/:id/:idUser',venueController.reviewDelete);
 /**
  * API examples routes.
  */
