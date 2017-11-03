@@ -39,9 +39,9 @@ const venueSchema = new mongoose.Schema({
     phone:Number,
     description:String,
 
-    photo:[venuePhotoSchema],
-    review:[venueReviewSchema],
-    sports:[sportNameSchema]
+    // photo:[venuePhotoSchema],
+    // review:[venueReviewSchema],
+    // sports:[sportNameSchema]
 }, { timestamps: true });
 
 const Venue = mongoose.model('Venue', venueSchema);
